@@ -9,7 +9,7 @@ Web-интерфейс Obsidian Date Base
 # Вводные данные
 
 Hardware: 
-* Одноплатник [`Orange Pi Zero 2W 2Gb`](https://www.ozon.ru/product/mikrokompyuter-orange-pi-zero-2w-2gb-1575206629/); \
+* Одноплатник [`Orange Pi Zero 2W 2Gb`](https://www.ozon.ru/product/mikrokompyuter-orange-pi-zero-2w-2gb-1575206629/) (опционально).
 
 
 Sofware:
