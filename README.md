@@ -10,7 +10,7 @@ Web-интерфейс Obsidian Date Base
 
 Hardware: 
 * Одноплатник [`Orange Pi Zero 2W 2Gb`](https://www.ozon.ru/product/mikrokompyuter-orange-pi-zero-2w-2gb-1575206629/); \
-\
+
 
 Sofware:
 * OS: [`Armbian_community 25.5.0-trunk.367 bookworm aarch64`](https://dl.armbian.com/orangepizero2w/Bookworm_current_minimal)
