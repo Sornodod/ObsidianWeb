@@ -1,102 +1,131 @@
-from flask import Flask, render_template, request, url_for, abort, session, redirect
-import os
+from flask import Flask, jsonify, request, render_template
+from pathlib import Path
 import markdown
-import urllib.parse
+import os
+import telebot
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Убедитесь, что у вас есть секретный ключ для сессий
 
-# Путь к вашей базе Obsidian
-OBSIDIAN_VAULT = r'E:\ObsidianDataBase\BackupSornMind\SornMind'
+# Путь к базе знаний
+BASE_PATH = Path(r"/home//ObsidianDB/MyObsidian") # ПОМЕНЯТЬ! Поменять адрес на свой
 
+# История открытых файлов (для кнопки "Назад")
+history_stack = []
 
-def is_safe_path(base_path, target_path):
-    """Проверка, что целевой путь находится внутри базового каталога (SornMind)"""
-    base_path = os.path.abspath(base_path)
-    target_path = os.path.abspath(target_path)
-    return os.path.commonpath([base_path]) == os.path.commonpath([base_path, target_path])
+# Инициализация Telegram бота
+TOKEN = 'СЮДА_ТОКЕН' # Можно получить у бота @BotFather
+bot = telebot.TeleBot(TOKEN)
 
+# ID авторизации
+ALLOWED_USER_ID = 1234567890 # ПОМЕНЯТЬ! ID-шник нужно свой указать тут. IDшник берётся у бота @getmyid_bot. Всё это нужно для того, что бы бот общался только с нами и не с кем другим.
 
-def get_folder_structure(path):
-    """Получаем структуру каталогов и файлов"""
-    folder_structure = []
-    for root, dirs, filenames in os.walk(path):
-        folder_structure.append({
-            'path': root,
-            'folders': dirs,
-            'files': filenames
-        })
-        break
-    return folder_structure
+# Создаем клавиатуру для Telegram WebApp
+def create_webapp_button():
+    web_app_url = "https://192.168.31.216:5000"  # Вот тут нужно поставить адрес своего сервера где крутится приложение. У меня это OrangePi со своим локальным адресом, посему и такой ip.
+    keyboard = InlineKeyboardMarkup()
+    web_app_button = InlineKeyboardButton("Open Web App", web_app=WebAppInfo(url=web_app_url))
+    keyboard.add(web_app_button)
+    return keyboard
 
+# Построение навигационного дерева файлов и папок
+def build_tree(current_path: Path):
+    tree = []
+    for item in sorted(current_path.iterdir()):
+        if item.name.startswith('.'):
+            continue
+        node = {
+            'name': item.name,
+            'path': str(item.relative_to(BASE_PATH)),
+        }
+        if item.is_dir():
+            node['type'] = 'folder'
+            node['children'] = build_tree(item)
+        elif item.suffix == '.md':
+            node['type'] = 'file'
+        else:
+            continue
+        tree.append(node)
+    return tree
 
-@app.route('/')
+# Главная страница
+@app.route("/")
 def index():
-    folder_structure = get_folder_structure(OBSIDIAN_VAULT)
-    return render_template('index.html', folder_structure=folder_structure)
+    return render_template("index.html")
 
+# API для получения дерева
+@app.route("/api/tree")
+def get_tree():
+    return jsonify(build_tree(BASE_PATH))
 
-@app.route('/folder/<path:folder_path>')
-def folder(folder_path):
-    # Декодируем путь, чтобы избежать ошибок с URL
-    folder_path = urllib.parse.unquote(folder_path)
+# API для получения содержимого файла
+@app.route("/api/file")
+def get_file():
+    rel_path = request.args.get("path", "")
+    abs_path = os.path.join(BASE_PATH, rel_path)
+    try:
+        with open(abs_path, "r", encoding="utf-8") as f:
+            content = f.read()
 
-    # Получаем полный путь
-    full_path = os.path.abspath(os.path.join(OBSIDIAN_VAULT, folder_path))
+        # Получаем название статьи из имени файла (без расширения .md)
+        title = os.path.basename(abs_path).replace(".md", "")
 
-    # Сохраняем текущий путь в сессии для кнопки "Назад"
-    session['previous_folder'] = folder_path
+        # Подключаем подсветку синтаксиса (Нихуя не работает)
+        md = markdown.Markdown(extensions=["fenced_code", "codehilite"])
+        html_content = md.convert(content)
 
-    # Проверка на безопасность пути
-    if not is_safe_path(OBSIDIAN_VAULT, full_path):
-        abort(403)  # Возвращаем ошибку доступа
+        # Отправляем HTML и название
+        push_to_history(rel_path)
+        return jsonify({"html": html_content, "title": title})
+    except Exception as e:
+        return jsonify({"html": f"<p>Ошибка: {str(e)}</p>", "title": "Ошибка"})
 
-    folder_structure = get_folder_structure(full_path)
-    files = []
+# API для возврата к предыдущей статье
+@app.route("/api/back")
+def go_back():
+    if len(history_stack) > 1:
+        history_stack.pop()  # Удаляем текущую
+        previous_path = history_stack[-1]  # Берём предыдущую
+        return get_file_from_history(previous_path)
+    return jsonify({"html": "<p>Нет предыдущих файлов.</p>", "title": "Нет предыдущих файлов"})
 
-    for root, dirs, filenames in os.walk(full_path):
-        for filename in filenames:
-            if filename.endswith('.md'):
-                filepath = os.path.join(root, filename)
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    md_content = f.read()
-                    html_content = markdown.markdown(md_content, extensions=['nl2br'])
-                files.append({'title': os.path.splitext(filename)[0], 'content': html_content})
-        break
+# Получение содержимого из истории
+def get_file_from_history(path):
+    file_path = BASE_PATH / path
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    html_content = markdown.markdown(content, extensions=["fenced_code", "tables"])
+    # Извлекаем название статьи из имени файла (без расширения .md). Это нам нужно что бы в web-интерфейсе у статьи было название.
+    title = os.path.basename(file_path).replace(".md", "")
+    return jsonify({"html": html_content, "title": title})
 
-    # Путь к текущей папке относительно OBSIDIAN_VAULT
-    relative_path = os.path.relpath(full_path, OBSIDIAN_VAULT)
+# Добавление файла в историю
+def push_to_history(path):
+    if not history_stack or history_stack[-1] != path:
+        history_stack.append(path)
 
-    # Проверяем существует ли родительская папка
-    parent_folder = os.path.dirname(relative_path)
-    parent_folder_path = os.path.join(OBSIDIAN_VAULT, parent_folder)
-
-    # Убедимся, что родительская папка существует
-    if not os.path.exists(parent_folder_path) or parent_folder == ".":
-        show_back_button = False  # Кнопка "Назад" не показывается в корневой папке
+# Запуск Telegram бота
+@bot.message_handler(commands=['start'])
+def start(message):
+    # Проверяем ID пользователя. ID-шник свой можно получить у @getmyid_bot
+    if message.from_user.id == ALLOWED_USER_ID:
+        keyboard = create_webapp_button()
+        bot.send_message(
+            message.chat.id,
+            "ТЕСТОВОЕ WEB-ПРИЛОЖЕНИЕ",
+            reply_markup=keyboard
+        )
     else:
-        show_back_button = True
+        bot.send_message(
+            message.chat.id,
+            "Тебе нельзя пользоваться этим ботом."
+        )
 
-    return render_template(
-        'folder.html',
-        files=files,
-        folder_structure=folder_structure,
-        show_back_button=show_back_button,
-        current_folder=relative_path.replace("\\", "/"),
-        parent_folder=urllib.parse.quote(parent_folder.replace("\\", "/"))  # Кодируем путь
+# Запуск Flask-сервера
+if __name__ == "__main__":
+    app.run(
+        host="0.0.0.0",  
+        port=5000,
+        ssl_context=(os.path.expanduser("~/Cert/server-cert.pem"), os.path.expanduser("~/Cert/server-key.pem"))
     )
-
-
-@app.route('/back')
-def back():
-    previous_folder = session.get('previous_folder', '')  # Получаем путь из сессии
-    if previous_folder:
-        # Выполняем редирект на предыдущую папку
-        return redirect(url_for('folder', folder_path=previous_folder))
-    else:
-        # Если предыдущий путь не найден, редиректим на главную
-        return redirect(url_for('index'))
-
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    bot.polling(non_stop=True)
