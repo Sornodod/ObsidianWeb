@@ -1,0 +1,213 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+    transition: all 0.3s ease;  
+}
+
+.sidebar {
+    width: 25%;
+    background-color: #1e1e1e;
+    color: white;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    border-right: 1px solid #333;
+    transition: all 0.3s ease;  
+}
+
+.sidebar.collapsed {
+    width: 0;
+    overflow: hidden;
+}
+
+.header {
+    margin-bottom: 15px;
+}
+
+/* Стили для контейнера кода и кнопки */
+/* Нихуя не работает */
+.code-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+/* Стили для кнопки копирования */
+/* Нихуя не работает */
+
+.copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    border-radius: 5px;
+}
+
+.copy-btn:hover {
+    background-color: #45a049;
+}
+
+/* Стили для метки языка */
+/* Нихуя не работает */
+
+.language-label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 3px 6px;
+    font-size: 12px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+#search-input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+#search-input:focus {
+    outline: none;
+    border-color: #333;
+}
+
+#back-btn {
+    display: block;
+    margin-top: 10px;
+    padding: 6px 12px;
+    background-color: #333;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#back-btn:hover {
+    background-color: #555;
+}
+
+/* Кнопка для сворачивания/раскрытия древа */
+#toggle-sidebar-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px;
+    background-color: #333;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 5px;
+    z-index: 100;
+}
+
+#toggle-sidebar-btn:hover {
+    background-color: #555;
+}
+
+/* Стили для кнопок "Свернуть" и "Показать древа" */
+#collapse-btn, #expand-btn {
+    margin-top: 10px;
+    padding: 6px 12px;
+    background-color: #333;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+}
+
+#collapse-btn:hover, #expand-btn:hover {
+    background-color: #555;
+}
+
+#expand-btn {
+    display: none; 
+}
+
+/* Основная зона контента */
+.content {
+    width: 75%;
+    padding: 20px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    background-color: #f8f8f8;
+    color: #111;
+    transition: all 0.3s ease;  
+}
+
+.content.collapsed {
+    width: 100%;
+}
+
+.container.collapsed {
+    flex-direction: column;
+}
+
+.article-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center; 
+}
+
+/* Стили для дерева файлов */
+#tree .folder {
+    cursor: pointer;
+    padding: 5px;
+    background-color: #333;
+    margin: 2px 0;
+    border-radius: 4px;
+}
+
+#tree .folder:hover {
+    background-color: #444;
+}
+
+#tree .folder.open {
+    background-color: #444;
+}
+
+#tree .folder > ul {
+    display: none; 
+    padding-left: 20px;
+    transition: all 0.3s ease;  
+}
+
+#tree .folder.open > ul {
+    display: block; 
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+    }
+
+    .content {
+        width: 100%;
+    }
+
+    .container {
+        flex-direction: column;
+    }
+}
