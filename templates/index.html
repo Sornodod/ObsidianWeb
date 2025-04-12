@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>База знаний SornMind</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Подключаем стили Prism.js для подсветки синтаксиса -->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.css" rel="stylesheet">
+    <!-- Подключаем сам Prism.js -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.js"></script>
+    <!-- Подключаем поддержку языков для Prism.js -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="header">
+                <h1>База знаний SornMind</h1>
+                <button id="back-btn">Назад</button>
+                <button id="toggle-sidebar-btn" class="toggle-sidebar-btn">⇔</button>
+                <input type="text" id="search-input" placeholder="Поиск статьи...">
+                <button id="collapse-btn" class="btn">Свернуть</button>
+                <button id="expand-btn" class="btn" style="display: none;">Показать древо</button>
+            </div>
+            <div id="tree"></div>
+        </aside>
+        <main id="content" class="content">
+            <p>Выберите статью из дерева слева.</p>
+        </main>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
