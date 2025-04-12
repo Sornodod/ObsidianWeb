@@ -63,16 +63,17 @@ async function loadFile(path) {
     const content = document.getElementById("content");
     const titleElement = document.createElement("h1");
     titleElement.textContent = articleTitle;
-    titleElement.classList.add('article-title');  // Добавляем стиль для заголовка
-    titleElement.style.textAlign = 'center';  // Выравниваем по центру
-    content.innerHTML = '';  // Очищаем текущий контент
-    content.appendChild(titleElement);  // Добавляем заголовок
+    titleElement.classList.add('article-title');  
+    titleElement.style.textAlign = 'center';  
+    content.innerHTML = '';  
+    content.appendChild(titleElement); 
 
-    // Добавляем сам контент статьи
+ 
     content.innerHTML += data.html || "<p>Ошибка загрузки.</p>";
 }
 
-// Функция для добавления кнопок "Скопировать"
+// Функция для добавления кнопки "Скопировать"
+// В ТЕКУЩЕЙ ВЕРСИИ ЭТА КНОПКА НЕ РАБОТАЕТ
 function addCopyButtons() {
     const codeBlocks = document.querySelectorAll("pre code");
     codeBlocks.forEach((block) => {
@@ -80,7 +81,6 @@ function addCopyButtons() {
         const codeContainer = document.createElement("div");
         codeContainer.classList.add("code-container");
 
-        // Добавляем сам блок кода
         const codeElement = block.parentElement;
 
         // Добавляем кнопку для копирования
@@ -103,12 +103,12 @@ function addCopyButtons() {
         // Вставляем контейнер с кодом и кнопкой в статью
         block.parentElement.replaceWith(codeContainer);
 
-        // Получаем язык кода (если есть)
-        const language = block.className.split(' ')[1];  // class="language-python"
+        // Получаем ЯП
+        const language = block.className.split(' ')[1]; 
         if (language) {
             const languageLabel = document.createElement("span");
             languageLabel.classList.add("language-label");
-            languageLabel.textContent = language.toUpperCase();  // Показываем язык (например, Python)
+            languageLabel.textContent = language.toUpperCase();  
             codeContainer.appendChild(languageLabel);
         }
     });
@@ -117,15 +117,15 @@ function addCopyButtons() {
 // Функция для сворачивания/раскрытия папки
 function toggleFolder(path, folder, nested) {
     if (openedFolders.has(path)) {
-        openedFolders.delete(path); // Закрываем папку
+        openedFolders.delete(path); 
         folder.classList.remove("open");
-        nested.style.display = "none";  // Скрываем содержимое папки
+        nested.style.display = "none";  
     } else {
-        openedFolders.add(path); // Открываем папку
+        openedFolders.add(path);
         folder.classList.add("open");
-        nested.style.display = "block";  // Показываем содержимое папки
+        nested.style.display = "block"; 
     }
-    localStorage.setItem("openedFolders", JSON.stringify(Array.from(openedFolders)));  // Сохраняем состояние в localStorage
+    localStorage.setItem("openedFolders", JSON.stringify(Array.from(openedFolders)));  
 }
 
 document.getElementById("back-btn").onclick = async () => {
@@ -161,15 +161,15 @@ document.getElementById("collapse-btn").onclick = () => {
     Array.from(folders).forEach((folder) => {
         const nested = folder.querySelector("ul");
         if (nested) {
-            nested.style.display = "none";  // Скрыть все папки
-            folder.classList.remove("open");  // Убрать стиль для открытых папок
+            nested.style.display = "none"; 
+            folder.classList.remove("open");  
         }
     });
 
-    openedFolders.clear();  // Очистить сохранённое состояние папок
-    localStorage.setItem("openedFolders", "[]");  // Сохранить пустое состояние
-    document.getElementById("expand-btn").style.display = "inline";  // Показать кнопку "Показать древо"
-    document.getElementById("collapse-btn").style.display = "none";  // Скрыть кнопку "Свернуть"
+    openedFolders.clear();  
+    localStorage.setItem("openedFolders", "[]"); 
+    document.getElementById("expand-btn").style.display = "inline"; 
+    document.getElementById("collapse-btn").style.display = "none";  
 };
 
 document.getElementById("expand-btn").onclick = () => {
@@ -179,13 +179,13 @@ document.getElementById("expand-btn").onclick = () => {
     Array.from(folders).forEach((folder) => {
         const nested = folder.querySelector("ul");
         if (nested) {
-            nested.style.display = "block";  // Показать все папки
-            folder.classList.add("open");  // Установить стиль для открытых папок
+            nested.style.display = "block";  
+            folder.classList.add("open");  
         }
     });
 
-    document.getElementById("expand-btn").style.display = "none";  // Скрыть кнопку "Показать древо"
-    document.getElementById("collapse-btn").style.display = "inline";  // Показать кнопку "Свернуть"
+    document.getElementById("expand-btn").style.display = "none";  
+    document.getElementById("collapse-btn").style.display = "inline";  
 };
 
 window.onload = fetchTree;
