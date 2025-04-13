@@ -98,7 +98,6 @@ pip install Pygments
 
 
 ## Шаг №5. Автозапуск.
-Вот тут я не ручаюсь что сделал правильно, так как работает через раз. 
 Создаём файл службы:
 ```shell
 sudo nano /etc/systemd/system/obsidian-webapp.service
@@ -110,13 +109,11 @@ Description=Obsidian WebApp
 After=network.target
 
 [Service]
+[Service]
 User=root
-WorkingDirectory=/home/root/SornSoft/ObsidianWeb/WebApp
-Environment="PATH=/home/root/SornSoft/ObsidianWeb/WebApp/venv/bin"
-ExecStart=/home/root/SornSoft/ObsidianWeb/WebApp/venv/bin/python3 /home/root/SornSoft/ObsidianWeb/WebApp/app.py
+WorkingDirectory=/root/SornSoft/ObsidianWeb/WebApp
+ExecStart=/root/SornSoft/ObsidianWeb/WebApp/venv/bin/python /root/SornSoft/ObsidianWeb/WebApp/app.py
 Restart=always
-RestartSec=5
-TimeoutSec=300
 
 [Install]
 WantedBy=multi-user.target
